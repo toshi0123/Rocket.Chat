@@ -2,7 +2,8 @@ import url from 'url';
 import http from 'http';
 import https from 'https';
 
-import { RTMClient } from '@slack/client';
+import { RTMClient } from '@slack/rtm-api';
+const HttpsProxyAgent = require('https-proxy-agent');
 import { Meteor } from 'meteor/meteor';
 
 import { logger } from './logger';
@@ -33,6 +34,7 @@ export default class SlackAdapter {
 		this.rocket = {};
 		this.messagesBeingSent = [];
 		this.slackBotId = false;
+		this.proxy = new HttpsProxyAgent(process.env.http_proxy);
 
 		this.slackAPI = {};
 	}
@@ -48,7 +50,7 @@ export default class SlackAdapter {
 			RTMClient.disconnect;
 		}
 		this.slackAPI = new SlackAPI(this.apiToken);
-		this.rtm = new RTMClient(this.apiToken);
+		this.rtm = new RTMClient(this.apiToken, { agent: this.proxy });
 		this.rtm.start();
 		this.registerForEvents();
 
